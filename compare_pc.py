@@ -15,15 +15,14 @@ combined_cloud_df = pd.concat(cloud_dfs, ignore_index=True)
 sn_df.columns = sn_df.columns.str.strip()
 combined_cloud_df.columns =  combined_cloud_df.columns.str.strip()
 
-#normalize account_id by removing leading zeros
+#normalize account_id
 sn_df['account_id'] = sn_df['u_account_reference'].astype(str).str.strip().str.lower().str.lstrip('0')
 combined_cloud_df['account_id'] = combined_cloud_df['Account ID'].astype(str).str.strip().str.lower().str.lstrip('0')
 
-sn_df['account_name'] = sn_df['u_account_name'].astype(str).str.strip().str.lower().str.replace('_', '-')
-combined_cloud_df['account_name'] = combined_cloud_df['Name'].astype(str).str.strip().str.lower().str.replace('_', '-')
+sn_df['account_name'] = sn_df['u_account_name'].astype(str).str.strip().str.lower().str.replace('-', '_')
+combined_cloud_df['account_name'] = combined_cloud_df['Name'].astype(str).str.strip().str.lower().str.replace('-', '_')
 
 # Remove (moody's tenant) from account names
-sn_df['account_name'] = sn_df['account_name'].str.replace("(moody's tenant)", '', regex=False).str.strip()
 combined_cloud_df['account_name'] = combined_cloud_df['account_name'].str.replace("(moody's tenant)", '', regex=False).str.strip()
 
 # Add cloud provider info to both dataframes
@@ -96,6 +95,6 @@ except ImportError:
     differing_data = pd.concat([sn_only, pc_only], axis=0, ignore_index=True)
 
 #save to CSV files
-matching_data.to_csv("output/matching_data.csv", index=False)
-differing_data.to_csv("output/differing_data.csv", index=False)
+matching_data.to_csv("output/matching_data_pc.csv", index=False)
+differing_data.to_csv("output/differing_data_pc.csv", index=False)
 
