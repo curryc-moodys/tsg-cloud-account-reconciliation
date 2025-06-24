@@ -30,7 +30,7 @@ This project is for reconciling cloud account data using Python scripts.
   ```bash
   python compare_pc_new.py
   ```
-- To delete files output files:
+- To delete output files:
   ```bash
   python delete_files.py
   ```
