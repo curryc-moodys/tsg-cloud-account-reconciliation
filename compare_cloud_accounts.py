@@ -6,7 +6,7 @@ import re
 import argparse
 
 # =============================================================================
-# NORMALIZATION FUNCTIONS (from compare_pc.py, enhanced)
+# NORMALIZATION FUNCTIONS
 # =============================================================================
 def normalize_account_id(series):
     """
@@ -27,7 +27,7 @@ def normalize_account_name(series):
         .str.replace('-', '_')
         .str.replace(' ', '')
         .str.lstrip('0')
-        .str.replace(r"\(moody['’`]?s tenant\)", '', regex=True, case=False)
+        .str.replace(r"\(moody['’']?s tenant\)", '', regex=True, case=False)
         .str.replace('.', '', regex=False)
     )
     # Remove all non-alphanumeric and non-underscore characters
@@ -46,14 +46,14 @@ def infer_cloud_provider(name):
         return ''
 
 # =============================================================================
-# LOGGING UTILITY (from compare_new.py)
+# LOGGING UTILITY
 # =============================================================================
 def log_and_print(log_lines, message):
     print(message)
     log_lines.append(message + '\n')
 
 # =============================================================================
-# MAIN RECONCILIATION LOGIC (from compare_pc.py, with logging)
+# MAIN RECONCILIATION LOGIC
 # =============================================================================
 def main():
     parser = argparse.ArgumentParser(description='CMDB vs Prisma Cloud Reconciliation')
@@ -179,5 +179,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# This script is designed to compare ServiceNow CMDB data with Prisma Cloud data,
-# 
+# This script is designed to compare ServiceNow CMDB data with Prisma Cloud data

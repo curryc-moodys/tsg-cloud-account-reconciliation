@@ -4,7 +4,7 @@ This project is for reconciling cloud account data using Python scripts.
 
 ## Project Structure
 
-- `compare_pc_new.py` - Script for comparing datasets.
+- `compare_cloud_accounts.py` - Script for comparing datasets.
 - `delete_files.py` - Script for deleting files.
 - `requirements.txt` - Python dependencies.
 - `datasets/` - Input data files (CSV format).
@@ -28,7 +28,7 @@ This project is for reconciling cloud account data using Python scripts.
 
 - To compare datasets:
   ```bash
-  python compare_pc_new.py
+  python compare_cloud_accounts.py
   ```
 - To delete output files:
   ```bash
