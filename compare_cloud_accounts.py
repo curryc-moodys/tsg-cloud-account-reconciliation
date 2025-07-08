@@ -4,6 +4,8 @@ from fuzzywuzzy import fuzz, process
 import json
 import re
 import argparse
+import glob
+import os
 
 # =============================================================================
 # NORMALIZATION FUNCTIONS
@@ -56,26 +58,33 @@ def log_and_print(log_lines, message):
 # MAIN RECONCILIATION LOGIC
 # =============================================================================
 def main():
+
+
     parser = argparse.ArgumentParser(description='CMDB vs Prisma Cloud Reconciliation')
-    parser.add_argument('--sn-path', type=str, default='datasets/SN/u_cloud_access_lob_accounts.csv', help='Path to ServiceNow (CMDB) CSV')
-    parser.add_argument('--aws-path', type=str, default='datasets/PC/cloudAccountProjectsTable-2025-05-06T14_21_50.836Z.csv', help='Path to AWS Prisma Cloud CSV')
-    parser.add_argument('--azr-path', type=str, default='datasets/PC/cloudAccountProjectsTable-2025-05-06T19_11_33.793Z.csv', help='Path to Azure Prisma Cloud CSV')
-    parser.add_argument('--gcp-path', type=str, default='datasets/PC/cloudAccountProjectsTable-2025-05-06T19_13_47.105Z.csv', help='Path to GCP Prisma Cloud CSV')
+    parser.add_argument('--sn-dir', type=str, default='datasets/SN/', help='Directory for ServiceNow (CMDB) CSVs')
+    parser.add_argument('--pc-dir', type=str, default='datasets/PC/', help='Directory for Prisma Cloud CSVs')
     parser.add_argument('--fuzzy-threshold', type=int, default=80, help='Fuzzy match threshold (0-100)')
     parser.add_argument('--output-prefix', type=str, default='output/', help='Output directory prefix')
     args = parser.parse_args()
 
     log_lines = []
-    log_and_print(log_lines, f"Loading ServiceNow data from {args.sn_path}")
-    sn_df = pd.read_csv(args.sn_path, encoding='latin1')
+
+    # Load all ServiceNow CSVs (if you expect only one, just use sn_files[0])
+    sn_files = glob.glob(os.path.join(args.sn_dir, '*.csv'))
+    if not sn_files:
+        raise FileNotFoundError(f"No ServiceNow CSVs found in {args.sn_dir}")
+    log_and_print(log_lines, f"Loading ServiceNow data from: {sn_files}")
+    sn_dfs = [pd.read_csv(f, encoding='latin1') for f in sn_files]
+    sn_df = pd.concat(sn_dfs, ignore_index=True) if len(sn_dfs) > 1 else sn_dfs[0]
     log_and_print(log_lines, f"Loaded {len(sn_df)} ServiceNow records")
 
-    log_and_print(log_lines, f"Loading Prisma Cloud data from {args.aws_path}, {args.azr_path}, {args.gcp_path}")
-    aws_df = pd.read_csv(args.aws_path, encoding='latin1')
-    azr_df = pd.read_csv(args.azr_path, encoding='latin1')
-    gcp_df = pd.read_csv(args.gcp_path, encoding='latin1')
-    cloud_dfs = [aws_df, azr_df, gcp_df]
-    combined_cloud_df = pd.concat(cloud_dfs, ignore_index=True)
+    # Load all Prisma Cloud CSVs
+    pc_files = glob.glob(os.path.join(args.pc_dir, '*.csv'))
+    if not pc_files:
+        raise FileNotFoundError(f"No Prisma Cloud CSVs found in {args.pc_dir}")
+    log_and_print(log_lines, f"Loading Prisma Cloud data from: {pc_files}")
+    pc_dfs = [pd.read_csv(f, encoding='latin1') for f in pc_files]
+    combined_cloud_df = pd.concat(pc_dfs, ignore_index=True)
     log_and_print(log_lines, f"Loaded {len(combined_cloud_df)} Prisma Cloud records")
 
     # Normalize column names
@@ -83,7 +92,8 @@ def main():
     combined_cloud_df.columns = combined_cloud_df.columns.str.strip()
 
     # Normalize account_id and account_name
-    sn_df['account_id'] = normalize_account_id(sn_df['u_account_reference'])
+    # Use 'u_short_account_number' as the ServiceNow account_id column (updated for new dataset)
+    sn_df['account_id'] = normalize_account_id(sn_df['u_short_account_number'])
     combined_cloud_df['account_id'] = normalize_account_id(combined_cloud_df['Account ID'])
     sn_df['account_name'] = normalize_account_name(sn_df['u_account_name'])
     combined_cloud_df['account_name'] = normalize_account_name(combined_cloud_df['Name'])
